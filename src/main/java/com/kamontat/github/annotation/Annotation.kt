@@ -15,7 +15,7 @@ enum class Level(val number: Int) {
  */
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
-annotation class LinkLevel(val level: Level)
+annotation class ELevel(val level: Level)
 
 /**
  * @author kamontat
