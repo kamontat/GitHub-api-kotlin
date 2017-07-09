@@ -26,10 +26,13 @@ class FileLoader() {
         obj(KEY.OAUTH.title to "", KEY.CREATE_AT.title to "", KEY.UPDATE_AT.title to "")
     }
 
+    private var load: Boolean = false
+
     /**
      * key is on [Constants.KEY]
      */
     fun getByKey(key: KEY): String {
+        if (!load) load()
         return json.string(key.title) ?: ""
     }
 
@@ -52,16 +55,19 @@ class FileLoader() {
         }
     }
 
-    fun load(): Boolean {
-        if (file.exists() && file.length() != 0L) {
+    fun load(): Boolean = when {
+        file.exists() && file.length() != 0L -> {
             json = JSON().fromStringBuilder(Files.readAllLines(Paths.get(FILE_NAME)).joinTo(StringBuilder(), ""))
-            return false
-        } else {
+            load = true
+            false
+        }
+        else -> {
             val result = file.createNewFile()
             setByKey(KEY.CREATE_AT, getDateAndTime())
             setByKey(KEY.UPDATE_AT, getDateAndTime())
             write()
-            return result
+            load = true
+            result
         }
     }
 
@@ -69,6 +75,7 @@ class FileLoader() {
         if (getByKey(KEY.CREATE_AT) == "") setByKey(KEY.CREATE_AT, getDateAndTime())
         setByKey(KEY.UPDATE_AT, getDateAndTime())
         write()
+        load = false
         return true
     }
 
