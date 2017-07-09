@@ -1,7 +1,7 @@
 package com.kamontat.github.model.link
 
+import com.kamontat.github.annotation.ELevel
 import com.kamontat.github.annotation.Level
-import com.kamontat.github.annotation.LinkLevel
 import com.kamontat.github.annotation.Require
 import com.kamontat.github.exception.instants.GithubExceptionInstant
 import java.lang.reflect.Method
@@ -19,12 +19,19 @@ class GithubLink(private var link: StringBuilder = StringBuilder("https://api.gi
 
     companion object Factory {
         fun create(): GithubLink = GithubLink()
+
+        // fixed version 3
+        val ACCEPT_HEADER: Pair<String, String> = "Accept" to "application/vnd.github.v3+json"
+
+        fun AUTHORIZATION_HEADER(oauthToken: String): Pair<String, String> {
+            return "Authorization" to "token $oauthToken"
+        }
     }
 
     private fun getLevel(): Level {
         val jClass = this::class.java
-        if (jClass.isAnnotationPresent(LinkLevel::class.java))
-            return jClass.getAnnotation(LinkLevel::class.java).level
+        if (jClass.isAnnotationPresent(ELevel::class.java))
+            return jClass.getAnnotation(ELevel::class.java).level
         return Level.LEVEL_FIRST
     }
 
@@ -33,23 +40,25 @@ class GithubLink(private var link: StringBuilder = StringBuilder("https://api.gi
      */
     private fun getMethodName(level: Int = 3): String = Thread.currentThread().stackTrace[level].methodName
 
-    private fun getMethod(level: Int = 5): Method? {
+    private fun getMethod(level: Int = 5): Method {
         val name: String = getMethodName(level)
         val filterMethod = javaClass.methods.filter { method -> method.name == name }
-        return filterMethod.singleOrNull()
+        return filterMethod.single()
     }
 
-    private fun query(message: String): GithubLink {
-        manageAnnotation()
-        link.append(message).append("/")
+    private fun query(message: String, level: Int = 6, addSl: Boolean = true): GithubLink {
+        manageAnnotation(level)
+        link.append(message)
+        if (addSl)
+            link.append("/")
         return this
     }
 
     private fun manageAnnotation(level: Int = 6) {
-        val method: Method = getMethod(level)!!
+        val method: Method = getMethod(level)
         // declared variable
         val requireAnnotation: Require? = method.getAnnotation(Require::class.java)
-        val linkLevelAnnotation: LinkLevel? = method.getAnnotation(LinkLevel::class.java)
+        val linkLevelAnnotation: ELevel? = method.getAnnotation(ELevel::class.java)
         // check require
         if (require != null)
             if (method.parameterCount != 1 || method.parameters[0].type != require?.java)
@@ -62,45 +71,60 @@ class GithubLink(private var link: StringBuilder = StringBuilder("https://api.gi
         // check link level
         if (!currentLevel.compare(linkLevelAnnotation.level)) throw GithubExceptionInstant.Invalid.get("request method currentLevel (at ${method.name}())")
         // set new level
-        currentLevel = method.getAnnotation(LinkLevel::class.java).level
+        currentLevel = method.getAnnotation(ELevel::class.java).level
     }
 
-    @LinkLevel(Level.LEVEL_LAST)
+    @ELevel(Level.LEVEL_LAST)
     fun get(): String {
         manageAnnotation(4)
         return link.deleteCharAt(link.length - 1).toString()
     }
 
-    @LinkLevel(Level.LEVEL_2)
+    @ELevel(Level.LEVEL_2)
     fun REPOS(): GithubLink = query("repos")
 
-    @LinkLevel(Level.LEVEL_2)
+    @ELevel(Level.LEVEL_2)
     fun USERS(): GithubLink = query("users")
 
-    @LinkLevel(Level.LEVEL_2)
+    @ELevel(Level.LEVEL_2)
     fun USER(): GithubLink = query("user")
 
-    @LinkLevel(Level.LEVEL_2)
+    @ELevel(Level.LEVEL_2)
     fun AUTHORIZATIONS(): GithubLink = query("authorizations")
 
-    @LinkLevel(Level.LEVEL_2)
+    @ELevel(Level.LEVEL_2)
     fun EMAILS(): GithubLink = query("emails")
 
-    @LinkLevel(Level.LEVEL_2)
+    @ELevel(Level.LEVEL_2)
     fun EMOJIS(): GithubLink = query("emojis")
 
-    @LinkLevel(Level.LEVEL_2)
+    @ELevel(Level.LEVEL_2)
     fun RATE_LIMIT(): GithubLink = query("rate_limit")
 
-    @LinkLevel(Level.LEVEL_2)
+    @ELevel(Level.LEVEL_2)
     @Require(Int::class)
     fun GIST(): GithubLink = query("gists")
 
-    @LinkLevel(Level.LEVEL_2)
+    @ELevel(Level.LEVEL_2)
     fun ISSUES(): GithubLink = query("issues")
 
-    @LinkLevel(Level.LEVEL_3)
+    @ELevel(Level.LEVEL_3)
     fun KEYS(): GithubLink = query("keys")
+
+    @ELevel(Level.LEVEL_LAST)
+    fun addParams(vararg pair: Pair<String, String>): GithubLink {
+        query("?", addSl = false)
+        pair.forEachIndexed {
+            index, (first, second) ->
+            run {
+                when (index) {
+                    0 -> query("$first=$second", addSl = false)
+                    else -> query("&$first=$second", addSl = false)
+                }
+            }
+        }
+        return this
+    }
 
     fun setInt(int: Int) = query("$int")
 
