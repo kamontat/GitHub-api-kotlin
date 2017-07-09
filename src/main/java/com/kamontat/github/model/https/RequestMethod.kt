@@ -6,5 +6,5 @@ package com.kamontat.github.model.https
  * @since Thu 06/Jul/2017 - 5:37 PM
  */
 enum class RequestMethod {
-    POST, GET
+    POST, GET, HEAD, PATCH, PUT, DELETE
 }
