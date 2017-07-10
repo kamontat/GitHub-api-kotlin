@@ -7,3 +7,5 @@ jcenter: https://bintray.com/kamontat/github-api-kotlin/core-api
 ```
 compile 'com.kamontat.github:github-api-kotlin:0.0.1-alpha.2'
 ```
+
+publish command: `./gradew build bintrayUpload --info`
