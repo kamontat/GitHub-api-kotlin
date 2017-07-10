@@ -3,11 +3,13 @@ package com.kamontat.github.model.gh
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonBase
 import com.beust.klaxon.JsonObject
+import com.beust.klaxon.obj
 import com.kamontat.github.annotation.JsonKey
 import com.kamontat.github.exception.constants.ErrorCode
 import com.kamontat.github.exception.instants.GithubExceptionInstant
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmErasure
 
@@ -19,9 +21,11 @@ import kotlin.reflect.jvm.jvmErasure
 object GHObjectBuilder {
     fun <T : GObject> build(tClass: KClass<T>, json: JsonBase): T? {
         if (json::class != JsonObject::class) throw GithubExceptionInstant.BuilderError.get(ErrorCode.WRONG_PARAMETER)
-        json as JsonObject
+        var jsonObject = json as JsonObject
 
         if (tClass.primaryConstructor == null) return null
+        val classAnnotation: JsonKey? = tClass.findAnnotation<JsonKey>()
+        if (classAnnotation != null) jsonObject = json.obj(classAnnotation.key) ?: throw GithubExceptionInstant.BuilderError.get(ErrorCode.WRONG_JSON_KEY)
         val map: HashMap<KParameter, Any?> = HashMap<KParameter, Any?>()
 
         tClass.primaryConstructor!!.parameters.forEach {
@@ -30,7 +34,7 @@ object GHObjectBuilder {
                 annotation ->
                 return@filter annotation.annotationClass == JsonKey::class
             }.singleOrNull() as JsonKey
-            val value = json[keyAnnotation?.key]
+            val value = jsonObject[keyAnnotation?.key]
             if (value != null && value::class == JsonObject::class)
                 map.put(params, build(params.type.jvmErasure as KClass<T>, value as JsonObject))
             else map.put(params, value)
