@@ -3,6 +3,7 @@ package com.kamontat.github.extension
 import com.beust.klaxon.JSON
 import com.beust.klaxon.JsonBase
 import com.beust.klaxon.Parser
+import okhttp3.Response
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,4 +23,8 @@ fun Date.githubParser(timeStamp: String): Date? {
         return dateFormat.parse(timeStamp)
     }
     return null
+}
+
+fun Response.toJSON(): JsonBase {
+    return JSON().fromString(body()!!.string())
 }
