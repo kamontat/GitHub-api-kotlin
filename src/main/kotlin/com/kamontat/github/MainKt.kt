@@ -1,10 +1,14 @@
 package com.kamontat.github
 
+import com.kamontat.github.extension.toJSON
 import com.kamontat.github.model.auth.FileLoader
+import com.kamontat.github.model.gh.GHObjectBuilder
+import com.kamontat.github.model.gh.ResourceRateLimit
+import com.kamontat.github.model.https.AcceptHeader
+import com.kamontat.github.model.https.AuthorizationHeader
 import com.kamontat.github.model.https.CURL
 import com.kamontat.github.model.https.RequestMethod
 import com.kamontat.github.model.link.GithubLink
-import java.util.*
 
 /**
  * @author kamontat
@@ -13,13 +17,15 @@ import java.util.*
  */
 fun main(args: Array<String>) {
     val link: GithubLink = GithubLink.create()
-            .USER()
+            .RATE_LIMIT()
 
-    val response = CURL(RequestMethod.GET, link).header(GithubLink.ACCEPT_HEADER).header(GithubLink.AUTHORIZATION_HEADER(FileLoader())).fetchAsJSON()
+    val response = CURL(RequestMethod.GET, link)
+            .header(AcceptHeader.LICENSE)
+            .header(AuthorizationHeader(FileLoader()))
+            .fetch()
+            .toJSON()
 
-    print(response.toJsonString(true))
-}
+    // print(response.toJsonString(true))
 
-fun prints(strings: Array<String>) {
-    print(Arrays.toString(strings))
+    print(GHObjectBuilder.build(ResourceRateLimit::class, response).toString())
 }

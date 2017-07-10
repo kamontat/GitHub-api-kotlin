@@ -26,6 +26,7 @@ object GHObjectBuilder {
         if (tClass.primaryConstructor == null) return null
         val classAnnotation: JsonKey? = tClass.findAnnotation<JsonKey>()
         if (classAnnotation != null) jsonObject = json.obj(classAnnotation.key) ?: throw GithubExceptionInstant.BuilderError.get(ErrorCode.WRONG_JSON_KEY)
+
         val map: HashMap<KParameter, Any?> = HashMap<KParameter, Any?>()
 
         tClass.primaryConstructor!!.parameters.forEach {
