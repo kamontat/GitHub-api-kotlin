@@ -5,8 +5,6 @@ import com.kamontat.github.annotation.Level
 import com.kamontat.github.annotation.Optional
 import com.kamontat.github.annotation.Require
 import com.kamontat.github.exception.instants.GithubExceptionInstant
-import com.kamontat.github.model.auth.FileLoader
-import com.kamontat.github.model.https.Header
 import java.lang.reflect.Method
 import kotlin.reflect.KClass
 
