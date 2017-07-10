@@ -9,14 +9,15 @@ import com.kamontat.github.exception.instants.GithubExceptionInstant
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  * @author kamontat
- * @version 1.0
+ * @version 1.1
  * @since Mon 10/Jul/2017 - 2:52 PM
  */
 object GHObjectBuilder {
-    inline fun <reified T : GObject> build(tClass: KClass<T>, json: JsonBase): T? {
+    fun <T : GObject> build(tClass: KClass<T>, json: JsonBase): T? {
         if (json::class != JsonObject::class) throw GithubExceptionInstant.BuilderError.get(ErrorCode.WRONG_PARAMETER)
         json as JsonObject
 
@@ -30,7 +31,11 @@ object GHObjectBuilder {
                 return@filter annotation.annotationClass == JsonKey::class
             }.singleOrNull() as JsonKey
             val value = json[keyAnnotation?.key]
-            map.put(params, value)
+            if (value != null && value::class == JsonObject::class)
+                map.put(params, build(params.type.jvmErasure as KClass<T>, value as JsonObject))
+            else map.put(params, value)
+
+            return@forEach
         }
         return tClass.primaryConstructor!!.callBy(map)
     }
