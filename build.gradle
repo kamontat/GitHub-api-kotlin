@@ -27,6 +27,8 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    
     compile 'com.beust:klaxon:0.30'
     compile 'com.squareup.okhttp3:okhttp:3.8.1'
 
@@ -68,7 +70,7 @@ bintray {
         licenses = ['BSD 3-Clause']
         vcsUrl = 'https://github.com/kamontat/GitHub-api-kotlin.git'
         publicDownloadNumbers = true
-        
+
         version {
             name = '0.0.1-alpha.2'
             desc = 'test version'
