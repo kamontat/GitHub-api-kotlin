@@ -26,5 +26,8 @@ annotation class ELevel(val level: Level)
 @MustBeDocumented
 annotation class Require(val nextClass: KClass<*>)
 
+@Target(AnnotationTarget.FUNCTION)
+annotation class Optional(val nextClass: KClass<*>)
+
 @Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class JsonKey(val key: String)
