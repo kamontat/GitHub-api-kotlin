@@ -6,9 +6,16 @@ package com.kamontat.github.exception.constants
  * @since Thu 06/Jul/2017 - 5:05 PM
  */
 enum class ErrorCode(private val code: String, private val message: String) {
+    // hard to happen
     LINK_NOT_FOUND("N1000", "Link not found"),
-    NEVER_BUILD_LINK("N2000", "You never build link"),
-    RESPONSE_NOT_FOUND("F1000", "server not sent any response message")
+    // developer failure
+    NEVER_BUILD_LINK("D2000", "You never build link"),
+    /**
+     * mostly this error happen when you use wrong method to build the object
+     */
+    WRONG_PARAMETER("D1000", "wrong state or type in build parameter"),
+    // server failure
+    RESPONSE_NOT_FOUND("S1000", "server not sent any response message")
     ;
 
     override fun toString(): String {
