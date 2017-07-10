@@ -14,6 +14,7 @@ enum class ErrorCode(private val code: String, private val message: String) {
      * mostly this error happen when you use wrong method to build the object
      */
     WRONG_PARAMETER("D1000", "wrong state or type in build parameter"),
+    WRONG_JSON_KEY("D2000", "json key annotation is wrong by some reason"),
     // server failure
     RESPONSE_NOT_FOUND("S1000", "server not sent any response message")
     ;
