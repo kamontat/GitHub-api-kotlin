@@ -28,7 +28,7 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    
+
     compile 'com.beust:klaxon:0.30'
     compile 'com.squareup.okhttp3:okhttp:3.8.1'
 

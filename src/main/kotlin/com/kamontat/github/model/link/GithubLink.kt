@@ -116,6 +116,9 @@ class GithubLink(private var link: StringBuilder = StringBuilder("https://api.gi
     @ELevel(Level.LEVEL_3)
     fun KEYS(): GithubLink = query("keys")
 
+    @ELevel(Level.LEVEL_3)
+    fun FOLLOWING(): GithubLink = query("following")
+
     @ELevel(Level.LEVEL_LAST)
     fun addParams(vararg pair: Pair<String, String>): GithubLink {
         query("?", addSl = false)

@@ -57,7 +57,7 @@ class FileLoader() {
 
     fun load(): Boolean = when {
         file.exists() && file.length() != 0L -> {
-            json = JSON().fromStringBuilder(Files.readAllLines(Paths.get(FILE_NAME)).joinTo(StringBuilder(), ""))
+            json = JSON().fromStringBuilder(Files.readAllLines(Paths.get(FILE_NAME)).joinTo(StringBuilder(), "")) as JsonObject
             load = true
             false
         }
