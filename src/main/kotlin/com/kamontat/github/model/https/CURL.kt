@@ -1,18 +1,14 @@
 package com.kamontat.github.model.https
 
-import com.beust.klaxon.JsonBase
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.kamontat.github.exception.GithubException
 import com.kamontat.github.exception.constants.ErrorCode
 import com.kamontat.github.exception.instants.GithubExceptionInstant
-import com.kamontat.github.extension.fromString
 import com.kamontat.github.model.link.GithubLink
 import com.kamontat.github.util.Log
-import okhttp3.MediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.*
+import java.io.IOException
 import java.net.URL
 import java.util.*
 import java.util.logging.Level
@@ -42,7 +38,7 @@ class CURL(private val method: RequestMethod, private val rawLink: GithubLink, p
     }
 
     @Throws(GithubException::class)
-    fun fetch(): String {
+    fun fetch(): Response {
         logger.get()?.log(Level.INFO, "start fetch ($link)")
         request = requestBuilder.url(link).build()
 
@@ -51,23 +47,24 @@ class CURL(private val method: RequestMethod, private val rawLink: GithubLink, p
         if (Objects.isNull(link) || Objects.isNull(request))
             throw GithubExceptionInstant.Network.get(ErrorCode.LINK_NOT_FOUND)
 
-        val response = client.newCall(request).execute()
+        try {
+            val response: Response = client.newCall(request).execute()
 
-        if (Objects.isNull(response) && Objects.isNull(response.body()))
-            throw GithubExceptionInstant.Network.get(ErrorCode.RESPONSE_NOT_FOUND)
-        if (!response.isSuccessful)
-            throw GithubExceptionInstant.ErrorMessage.get(Parser().parse(StringBuilder(response.body()!!.string())) as JsonObject, response.code())
+            if (Objects.isNull(response) || Objects.isNull(response.body()))
+                throw GithubExceptionInstant.Network.get(ErrorCode.RESPONSE_NOT_FOUND)
+            if (!response.isSuccessful)
+                throw GithubExceptionInstant.ErrorMessage.get(Parser().parse(StringBuilder(response.body()!!.string())) as JsonObject, response.code())
 
-        return response.body()!!.string()
+            return response
+        } catch (e: IOException) {
+            throw GithubExceptionInstant.Network.get(e.localizedMessage, e)
+        } catch (e: IllegalStateException) {
+            throw GithubExceptionInstant.Network.get(e.localizedMessage, e)
+        }
     }
 
-    @Throws(GithubException::class)
-    fun fetchAsJSON(): JsonBase {
-        return com.beust.klaxon.JSON().fromString(fetch())
-    }
-
-    fun header(pair: Pair<String, String>): CURL {
-        requestBuilder.header(pair.first, pair.second)
+    fun header(header: Header): CURL {
+        requestBuilder.header(header.get().first, header.get().second)
         return this
     }
 
