@@ -2,9 +2,11 @@ package com.kamontat.github.model.link
 
 import com.kamontat.github.annotation.ELevel
 import com.kamontat.github.annotation.Level
+import com.kamontat.github.annotation.Optional
 import com.kamontat.github.annotation.Require
 import com.kamontat.github.exception.instants.GithubExceptionInstant
 import com.kamontat.github.model.auth.FileLoader
+import com.kamontat.github.model.https.Header
 import java.lang.reflect.Method
 import kotlin.reflect.KClass
 
@@ -20,17 +22,6 @@ class GithubLink(private var link: StringBuilder = StringBuilder("https://api.gi
 
     companion object Factory {
         fun create(): GithubLink = GithubLink()
-
-        // fixed version 3
-        val ACCEPT_HEADER: Pair<String, String> = "Accept" to "application/vnd.github.v3+json"
-
-        fun AUTHORIZATION_HEADER(oauthToken: String): Pair<String, String> {
-            return "Authorization" to "token $oauthToken"
-        }
-
-        fun AUTHORIZATION_HEADER(file: FileLoader): Pair<String, String> {
-            return "Authorization" to "token ${file.getByKey(FileLoader.Constants.KEY.OAUTH)}"
-        }
     }
 
     private fun getLevel(): Level {
@@ -112,6 +103,10 @@ class GithubLink(private var link: StringBuilder = StringBuilder("https://api.gi
 
     @ELevel(Level.LEVEL_2)
     fun ISSUES(): GithubLink = query("issues")
+
+    @ELevel(Level.LEVEL_2)
+    @Optional(String::class)
+    fun LICENSES(): GithubLink = query("licenses")
 
     @ELevel(Level.LEVEL_3)
     fun KEYS(): GithubLink = query("keys")
