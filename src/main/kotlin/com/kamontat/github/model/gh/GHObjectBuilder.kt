@@ -7,6 +7,7 @@ import com.beust.klaxon.obj
 import com.kamontat.github.annotation.JsonKey
 import com.kamontat.github.exception.constants.ErrorCode
 import com.kamontat.github.exception.instants.GithubExceptionInstant
+import com.kamontat.github.util.Log
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.findAnnotation
@@ -31,17 +32,26 @@ object GHObjectBuilder {
 
         tClass.primaryConstructor!!.parameters.forEach {
             params ->
+
+
             val keyAnnotation: JsonKey? = params.annotations.filter {
                 annotation ->
                 return@filter annotation.annotationClass == JsonKey::class
-            }.singleOrNull() as JsonKey
-            val value = jsonObject[keyAnnotation?.key]
+            }.singleOrNull() as? JsonKey
+            if (keyAnnotation == null) {
+                map.put(params, build(params.type.jvmErasure as KClass<T>, json))
+                return@forEach
+            }
+            val value = jsonObject[keyAnnotation.key]
+
+            Log.create()?.info("${params.name} - ${params.type} - $value")
+
             if (value != null && value::class == JsonObject::class)
                 map.put(params, build(params.type.jvmErasure as KClass<T>, value as JsonObject))
             else map.put(params, value)
-
             return@forEach
         }
+
         return tClass.primaryConstructor!!.callBy(map)
     }
 
@@ -49,15 +59,16 @@ object GHObjectBuilder {
         if (json::class != JsonArray::class) throw GithubExceptionInstant.BuilderError.get(ErrorCode.WRONG_PARAMETER)
         try {
             if ((json as JsonArray<*>).first()!!::class != JsonObject::class) throw GithubExceptionInstant.BuilderError.get(ErrorCode.WRONG_PARAMETER)
-            else json as JsonArray<JsonObject>
+            else
+                json as JsonArray<JsonObject>
         } catch (e: NoSuchElementException) {
             throw GithubExceptionInstant.BuilderError.get(ErrorCode.WRONG_PARAMETER, e)
         }
 
         val arr = arrayOfNulls<T>(json.size)
         json.forEachIndexed {
-            i, json ->
-            arr[i] = build(tClass, json)
+            i, jsonObj ->
+            arr[i] = build(tClass, jsonObj)
         }
         return arr
     }
