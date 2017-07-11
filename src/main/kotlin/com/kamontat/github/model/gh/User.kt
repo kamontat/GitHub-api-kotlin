@@ -7,16 +7,11 @@ import com.kamontat.github.annotation.JsonKey
  * @version 1.0
  * @since Mon 10/Jul/2017 - 2:50 PM
  */
-data class Owner(
+data class User(
         @JsonKey("login") val login: String,
         @JsonKey("id") val id: Long,
         @JsonKey("avatar_url") val avatar_url: String?,
-        @JsonKey("url") val api_url: String,
-        @JsonKey("html_url") val html_url: String,
-        @JsonKey("followers_url") val followers_url: String,
-        @JsonKey("following_url") val following_url: String,
-        @JsonKey("organizations_url") val organizations_url: String,
-        @JsonKey("repos_url") val repos_url: String,
+        @JsonKey("gravatar_id") val gravatar_id: String?,
         @JsonKey("type") val type: String,
         @JsonKey("site_admin") val site_admin: Boolean,
         @JsonKey("name") val name: String?,
@@ -38,7 +33,8 @@ data class Owner(
         @JsonKey("disk_usage") val disk_usage: Int?,
         @JsonKey("collaborators") val collaborators: Int?,
         @JsonKey("two_factor_authentication") val two_factor_authentication: Boolean?,
-        @JsonKey("plan") val plan: Plan?
+        @JsonKey("plan") val plan: Plan?,
+        val api_url: ApiUrl?
 ) : GObject() {
 
 }
