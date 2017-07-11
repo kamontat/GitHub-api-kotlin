@@ -32,13 +32,13 @@ class GithubExceptionInstant {
     }
 
     object ErrorMessage {
-        fun get(message: String, code: HttpCode, throws: Throwable? = null): MessageException = MessageException(message, code, throws)
+        fun get(link: String, message: String, code: HttpCode, throws: Throwable? = null): MessageException = MessageException(link, message, code, throws)
 
-        fun get(message: String, code: Int, throws: Throwable? = null): MessageException = MessageException(message, HttpCode.getByCode(code)[0], throws)
+        fun get(link: String, message: String, code: Int, throws: Throwable? = null): MessageException = MessageException(link, message, HttpCode.getByCode(code)[0], throws)
 
-        fun get(json: JsonObject, code: Int, throws: Throwable? = null): MessageException = MessageException(json, HttpCode.getByCode(code)[0], throws)
+        fun get(link: String, json: JsonObject, code: Int, throws: Throwable? = null): MessageException = MessageException(link, json, HttpCode.getByCode(code)[0], throws)
 
-        fun get(json: JsonObject, code: HttpCode, throws: Throwable? = null): MessageException = MessageException(json, code, throws)
+        fun get(link: String, json: JsonObject, code: HttpCode, throws: Throwable? = null): MessageException = MessageException(link, json, code, throws)
     }
 
     object BuilderError {
