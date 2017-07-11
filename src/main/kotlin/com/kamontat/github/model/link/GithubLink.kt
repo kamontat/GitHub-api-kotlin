@@ -14,11 +14,12 @@ import kotlin.reflect.KClass
  * @version 1.0
  * @since Thu 06/Jul/2017 - 5:22 PM
  */
-class GithubLink(private var link: StringBuilder = StringBuilder("https://api.github.com/")) {
+open class GithubLink(protected var link: StringBuilder = StringBuilder(DEFAULT_GITHUB_URL)) {
     private var currentLevel: Level = Level.LEVEL_FIRST
     private var require: KClass<*>? = null
 
     companion object Factory {
+        val DEFAULT_GITHUB_URL: String = "https://api.github.com/"
         fun create(): GithubLink = GithubLink()
     }
 
@@ -38,14 +39,6 @@ class GithubLink(private var link: StringBuilder = StringBuilder("https://api.gi
         val name: String = getMethodName(level)
         val filterMethod = javaClass.methods.filter { method -> method.name == name }
         return filterMethod.single()
-    }
-
-    private fun query(message: String, level: Int = 6, addSl: Boolean = true): GithubLink {
-        manageAnnotation(level)
-        link.append(message)
-        if (addSl)
-            link.append("/")
-        return this
     }
 
     private fun manageAnnotation(level: Int = 6) {
@@ -68,10 +61,26 @@ class GithubLink(private var link: StringBuilder = StringBuilder("https://api.gi
         currentLevel = method.getAnnotation(ELevel::class.java).level
     }
 
+    protected fun query(message: String, level: Int = 6, addSl: Boolean = true): GithubLink {
+        manageAnnotation(level)
+        link.append(message)
+        if (addSl)
+            link.append("/")
+        return this
+    }
+
     @ELevel(Level.LEVEL_LAST)
     fun get(): String {
         manageAnnotation(4)
-        return link.deleteCharAt(link.length - 1).toString()
+        return remove(1).toString()
+    }
+
+    /**
+     * remove and return **new** builder
+     */
+    fun remove(last: Int): StringBuilder {
+        val str: StringBuilder = StringBuilder(link.toString())
+        return str.delete(link.length - last, link.length)
     }
 
     @ELevel(Level.LEVEL_2)
@@ -107,22 +116,15 @@ class GithubLink(private var link: StringBuilder = StringBuilder("https://api.gi
     fun LICENSES(): GithubLink = query("licenses")
 
     @ELevel(Level.LEVEL_3)
-    fun KEYS(): GithubLink = query("keys")
-
-    @ELevel(Level.LEVEL_3)
     fun FOLLOWING(): GithubLink = query("following")
 
     @ELevel(Level.LEVEL_LAST)
     fun addParams(vararg pair: Pair<String, String>): GithubLink {
+        link = remove(1)
         query("?", addSl = false)
-        pair.forEachIndexed {
-            index, (first, second) ->
-            run {
-                when (index) {
-                    0 -> query("$first=$second", addSl = false)
-                    else -> query("&$first=$second", addSl = false)
-                }
-            }
+        pair.forEach {
+            (first, second) ->
+            query("$first=$second&", addSl = false)
         }
         return this
     }
