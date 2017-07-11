@@ -15,7 +15,18 @@ enum class AcceptHeader : Header {
         override fun get(): Pair<String, String> {
             return getKey() to "application/vnd.github.drax-preview+json"
         }
-    };
+    },
+    SEARCH_REPOSITORY() {
+        override fun get(): Pair<String, String> {
+            return getKey() to "application/vnd.github.mercy-preview+json"
+        }
+    },
+    SEARCH_COMMIT() {
+        override fun get(): Pair<String, String> {
+            return getKey() to "application/vnd.github.cloak-preview"
+        }
+    }
+    ;
 
     override fun getKey(): String {
         return "Accept"

@@ -12,19 +12,20 @@ import java.io.IOException
 import java.net.URL
 import java.util.*
 import java.util.logging.Level
+import java.util.logging.Logger
 
 /**
  * @author kamontat
  * @version 1.0
  * @since Tue 04/Jul/2017 - 3:34 PM
  */
-class CURL(private val method: RequestMethod, private val rawLink: GithubLink, private val debug: Boolean = false) {
-    private val logger = Log(debug)
+class CURL(private val method: RequestMethod, rawLink: GithubLink, debug: Boolean = false) {
+    private val logger: Logger? = Log.create()
 
     private var link: URL = URL(rawLink.get())
 
     init {
-        logger.get()?.log(Level.INFO, "link: $link")
+        logger?.log(Level.INFO, "link: $link")
     }
 
 
@@ -39,7 +40,7 @@ class CURL(private val method: RequestMethod, private val rawLink: GithubLink, p
 
     @Throws(GithubException::class)
     fun fetch(): Response {
-        logger.get()?.log(Level.INFO, "start fetch ($link)")
+        logger?.log(Level.INFO, "start fetch ($link)")
         request = requestBuilder.url(link).build()
 
         if (!isBuild())
@@ -53,7 +54,7 @@ class CURL(private val method: RequestMethod, private val rawLink: GithubLink, p
             if (Objects.isNull(response) || Objects.isNull(response.body()))
                 throw GithubExceptionInstant.Network.get(ErrorCode.RESPONSE_NOT_FOUND)
             if (!response.isSuccessful)
-                throw GithubExceptionInstant.ErrorMessage.get(Parser().parse(StringBuilder(response.body()!!.string())) as JsonObject, response.code())
+                throw GithubExceptionInstant.ErrorMessage.get(link.toString(), Parser().parse(StringBuilder(response.body()!!.string())) as JsonObject, response.code())
 
             return response
         } catch (e: IOException) {
