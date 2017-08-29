@@ -20,7 +20,7 @@ open class GithubLink(protected var link: StringBuilder = StringBuilder(DEFAULT_
 
     companion object Factory {
         val DEFAULT_GITHUB_URL: String = "https://api.github.com/"
-        fun create(): GithubLink = GithubLink()
+        fun create(build: String = ""): GithubLink = if (build == "") GithubLink() else GithubLink(StringBuilder(build))
     }
 
     private fun getLevel(): Level {
@@ -87,6 +87,7 @@ open class GithubLink(protected var link: StringBuilder = StringBuilder(DEFAULT_
     fun REPOS(): GithubLink = query("repos")
 
     @ELevel(Level.LEVEL_2)
+    @Optional(String::class)
     fun USERS(): GithubLink = query("users")
 
     @ELevel(Level.LEVEL_2)

@@ -10,6 +10,8 @@ enum class ErrorCode(private val code: String, private val message: String) {
     LINK_NOT_FOUND("N1000", "Link not found"),
     // developer failure
     NEVER_BUILD_LINK("D2000", "You never build link"),
+    CONSTRUCTOR_NOT_EXIST("D2001", "This class don't have primary constructor"),
+    SIZE_NOT_MATCHES("D2005", "array size not match"),
     /**
      * mostly this error happen when you use wrong method to build the object
      */

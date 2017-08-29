@@ -1,12 +1,10 @@
 package com.kamontat.github.exception.instants
 
 import com.beust.klaxon.JsonObject
-import com.kamontat.github.exception.BuilderObjectException
-import com.kamontat.github.exception.InvalidOrderException
-import com.kamontat.github.exception.MessageException
-import com.kamontat.github.exception.NetworkException
+import com.kamontat.github.exception.*
 import com.kamontat.github.exception.constants.ErrorCode
 import com.kamontat.github.exception.constants.HttpCode
+import kotlin.reflect.KClass
 
 /**
  * @author kamontat
@@ -31,6 +29,14 @@ class GithubExceptionInstant {
         fun get(message: String, throws: Throwable): InvalidOrderException = InvalidOrderException(message, throws)
     }
 
+    object DeveloperError {
+        fun get(code: ErrorCode): DeveloperException = DeveloperException(code.toString())
+
+        fun get(message: String): DeveloperException = DeveloperException(message)
+
+        fun get(message: String, throws: Throwable): DeveloperException = DeveloperException(message, throws)
+    }
+
     object ErrorMessage {
         fun get(link: String, message: String, code: HttpCode, throws: Throwable? = null): MessageException = MessageException(link, message, code, throws)
 
@@ -49,5 +55,11 @@ class GithubExceptionInstant {
         fun get(message: String): BuilderObjectException = BuilderObjectException(message)
 
         fun get(message: String, throws: Throwable): BuilderObjectException = BuilderObjectException(message, throws)
+    }
+
+    object Common {
+        inline fun <reified T : kotlin.Exception> get(e: KClass<T>, message: String): Exception {
+            return T::class.constructors.filter { it.parameters.size == 1 }[0].call(message)
+        }
     }
 }

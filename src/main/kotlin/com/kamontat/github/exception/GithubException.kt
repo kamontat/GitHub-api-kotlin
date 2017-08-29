@@ -6,5 +6,7 @@ package com.kamontat.github.exception
  * @since Thu 06/Jul/2017 - 4:57 PM
  */
 abstract class GithubException(message: String?, cause: Throwable?) : Exception(message, cause) {
+    constructor(message: String?) : this(message, null)
+
     open var reason: String? = null
 }

@@ -7,7 +7,9 @@ import com.beust.klaxon.obj
 import com.kamontat.github.annotation.JsonKey
 import com.kamontat.github.exception.constants.ErrorCode
 import com.kamontat.github.exception.instants.GithubExceptionInstant
+import com.kamontat.github.extension.githubParser
 import com.kamontat.github.util.Log
+import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.findAnnotation
@@ -20,11 +22,11 @@ import kotlin.reflect.jvm.jvmErasure
  * @since Mon 10/Jul/2017 - 2:52 PM
  */
 object GHObjectBuilder {
-    fun <T : GObject> build(tClass: KClass<T>, json: JsonBase): T? {
+    fun <T : GObject> build(tClass: KClass<T>, json: JsonBase): T {
         if (json::class != JsonObject::class) throw GithubExceptionInstant.BuilderError.get(ErrorCode.WRONG_PARAMETER)
         var jsonObject = json as JsonObject
 
-        if (tClass.primaryConstructor == null) return null
+        if (tClass.primaryConstructor == null) throw GithubExceptionInstant.BuilderError.get(ErrorCode.CONSTRUCTOR_NOT_EXIST)
         val classAnnotation: JsonKey? = tClass.findAnnotation<JsonKey>()
         if (classAnnotation != null) jsonObject = json.obj(classAnnotation.key) ?: throw GithubExceptionInstant.BuilderError.get(ErrorCode.WRONG_JSON_KEY)
 
@@ -32,8 +34,6 @@ object GHObjectBuilder {
 
         tClass.primaryConstructor!!.parameters.forEach {
             params ->
-
-
             val keyAnnotation: JsonKey? = params.annotations.filter {
                 annotation ->
                 return@filter annotation.annotationClass == JsonKey::class
@@ -46,9 +46,14 @@ object GHObjectBuilder {
 
             Log.create()?.info("${params.name} - ${params.type} - $value")
 
-            if (value != null && value::class == JsonObject::class)
-                map.put(params, build(params.type.jvmErasure as KClass<T>, value as JsonObject))
-            else map.put(params, value)
+            when {
+                value == null -> map.put(params, null)
+            // if have json object inside object
+                value::class == JsonObject::class -> map.put(params, build(params.type.jvmErasure as KClass<T>, value as JsonObject))
+            // parse string to date
+                params.type.jvmErasure == Date::class -> map.put(params, Date().githubParser(value as String))
+                else -> map.put(params, value)
+            }
             return@forEach
         }
 
@@ -68,6 +73,7 @@ object GHObjectBuilder {
         val arr = arrayOfNulls<T>(json.size)
         json.forEachIndexed {
             i, jsonObj ->
+            Log.create()?.info("$i == ${jsonObj.toJsonString(true)}")
             arr[i] = build(tClass, jsonObj)
         }
         return arr

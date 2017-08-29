@@ -4,6 +4,7 @@ import com.beust.klaxon.JSON
 import com.beust.klaxon.JsonBase
 import com.beust.klaxon.Parser
 import okhttp3.Response
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -20,11 +21,19 @@ fun Date.githubParser(timeStamp: String): Date? {
     val format = arrayOf("yyyy/MM/dd HH:mm:ss ZZZZ", "yyyy-MM-dd'T'HH:mm:ss'Z'")
     format.forEach {
         val dateFormat = SimpleDateFormat(it)
-        return dateFormat.parse(timeStamp)
+        try {
+            return dateFormat.parse(timeStamp)
+        } catch (ignore: ParseException) {
+        }
     }
     return null
 }
 
 fun Response.toJSON(): JsonBase {
     return JSON().fromString(body()!!.string())
+}
+
+fun Response.next(): Response? {
+    print(this.header("Link"))
+    return null
 }

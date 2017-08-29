@@ -1,23 +1,53 @@
 package com.kamontat.github.model.gh
 
-import com.kamontat.github.annotation.JsonKey
+import com.kamontat.github.exception.constants.ErrorCode
+import com.kamontat.github.exception.instants.GithubExceptionInstant
+import kotlin.reflect.KClass
+import kotlin.reflect.full.cast
 
 /**
  * @author kamontat
  * @version 1.0
- * @since Tue 11/Jul/2017 - 5:17 PM
+ * @since Thu 13/Jul/2017 - 3:28 PM
  */
-data class ApiUrl(
-        @JsonKey("html_url") val html_url: String?,
-        @JsonKey("url") val api_url: String?,
-        @JsonKey("followers_url") val followers_url: String?,
-        @JsonKey("following_url") val following_url: String?,
-        @JsonKey("gists_url") val gists_url: String?,
-        @JsonKey("starred_url") val starred_url: String?,
-        @JsonKey("subscriptions_url") val subscriptions_url: String?,
-        @JsonKey("organizations_url") val organizations_url: String?,
-        @JsonKey("repos_url") val repos_url: String?,
-        @JsonKey("events_url") val events_url: String?,
-        @JsonKey("received_events_url") val received_events_url: String?
-) : GObject() {
+open class ApiUrl(vararg protected val links: String?) : GObject() {
+    private val size = links.size
+
+    private val params = ArrayList<String>()
+    private val paths = ArrayList<String>()
+
+    fun <T : ApiUrl> cast(tClass: KClass<T>): T {
+        return tClass.cast(this)
+    }
+
+
+    fun getLink(index: Int): String {
+        return decode(index)
+    }
+
+    @Throws(NullPointerException::class)
+    protected fun decode(index: Int): String {
+        if (index >= size) throw GithubExceptionInstant.DeveloperError.get(ErrorCode.SIZE_NOT_MATCHES)
+        val link: String = links[index] ?: throw GithubExceptionInstant.Common.get(NullPointerException::class, "link not found")
+
+        val getter = Regex("""\{.*}""")
+        return when {
+            Regex(""".*\{.*}""").matches(link) -> {
+                val decodes: Sequence<MatchResult> = getter.findAll(link)
+                decodes.forEach {
+                    matchResult ->
+                    run {
+                        val value: String = matchResult.value.substring(1, matchResult.value.length - 1)
+                        when {
+                            value.startsWith("/") -> return@run paths.add(value)
+                            value.startsWith("?") -> return@run params.add(value)
+                            else -> return@run false
+                        }
+                    }
+                }
+                getter.replace(link, "")
+            }
+            else -> link
+        }
+    }
 }
